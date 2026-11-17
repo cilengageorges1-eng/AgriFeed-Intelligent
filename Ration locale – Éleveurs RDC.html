@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ration locale – Éleveurs RDC</title>
+<style>
+:root{--bg:#f3efe3;--card:#fffdf6;--ink:#1f2a1c;--mut:#5d6a56;--line:#d8d2bd;--acc:#2f6b2f;--acc2:#e0a526;--ok:#2f6b2f;--bad:#b3402a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161b14;--card:#202719;--ink:#eef0e4;--mut:#a3ae98;--line:#364030;--acc:#7fc27f;--acc2:#e8b84a;--ok:#7fc27f;--bad:#e8836b}}
+:root[data-theme="dark"]{--bg:#161b14;--card:#202719;--ink:#eef0e4;--mut:#a3ae98;--line:#364030;--acc:#7fc27f;--acc2:#e8b84a;--ok:#7fc27f;--bad:#e8836b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Georgia,"Times New Roman",serif;max-width:640px;margin:auto;padding:16px}
+h1{font-size:26px;margin:4px 0 2px;letter-spacing:-.5px}
+h2{font-size:17px;margin:0 0 8px}
+p.s{color:var(--mut);margin:0 0 14px;font-family:system-ui,sans-serif;font-size:14px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;font-family:system-ui,sans-serif}
+label{display:block;font-size:13px;color:var(--mut);margin:8px 0 3px}
+select,input{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.b{display:flex;gap:6px;flex-wrap:wrap}
+.b button{flex:1;min-width:52px;padding:10px 6px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-weight:600}
+.b button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.ing{display:grid;grid-template-columns:1fr 70px 70px;gap:6px;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
+.ing input{padding:7px;text-align:right}
+.hd{font-size:12px;color:var(--mut);border:0}
+.kg{text-align:right;font-weight:600}
+.n{display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid var(--line);font-size:14px}
+.ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
+.big{font-size:24px;font-weight:700;font-family:Georgia,serif}
+.w{color:var(--bad);font-size:13px;margin-top:6px}
+.bt{width:100%;padding:12px;border:0;border-radius:8px;background:var(--acc2);color:#1f2a1c;font:inherit;font-weight:700;margin-top:10px}
+.note{font-size:12px;color:var(--mut);font-family:system-ui,sans-serif}
+</style></head><body>
+<h1>Ration locale</h1>
+<p class="s">Fabriquez votre aliment avec les ingrédients disponibles chez vous, pour 1 ou 1 000 animaux.</p>
+
+<div class="c">
+<label for="sp">Animal et stade</label><select id="sp"></select>
+<label>Nombre de sujets</label>
+<div class="b" id="nb"></div>
+<div class="row"><div><label for="an">Autre nombre</label><input id="an" type="number" min="1" inputmode="numeric"></div>
+<div><label for="dj">Durée (jours)</label><input id="dj" type="number" min="1" value="7" inputmode="numeric"></div></div>
+</div>
+
+<div class="c">
+<h2>Ingrédients</h2>
+<div class="ing hd"><span>Ingrédient</span><span>% du mélange</span><span>Prix FC/kg</span></div>
+<div id="ings"></div>
+<div id="sum" class="n"></div>
+<button class="bt" id="rec">Remplir une formule de départ</button>
+</div>
+
+<div class="c">
+<h2>Quantité à fabriquer</h2>
+<div class="big" id="tot"></div>
+<div id="list"></div>
+<div class="n"><span>Coût total estimé</span><b id="cost"></b></div>
+</div>
+
+<div class="c">
+<h2>Besoins couverts</h2>
+<div id="nut"></div>
+<p class="note">Valeurs indicatives. Faites valider la formule par un vétérinaire ou zootechnicien avant un grand élevage.</p>
+</div>
+
+<script>
+var ING=[
+["mais","Maïs",8.5,3300,0.02],["sorgho","Sorgho",9,3200,0.03],["manioc","Farine de manioc",2,2900,0.1],
+["soja","Tourteau de soja",44,2400,0.3],["arachide","Tourteau d’arachide",45,2300,0.2],["palmiste","Tourteau de palmiste",16,1600,0.25],
+["ble","Son de blé",15,1400,0.1],["riz","Son de riz",12,2000,0.1],["saka","Feuilles de manioc séchées",22,1200,0.9],
+["poisson","Poisson séché (farine)",55,2800,5],["coq","Coquilles broyées (calcium)",0,0,36],["sel","Sel",0,0,0],["premix","Prémix vitamines",0,0,0]
+];
+var SP={
+"cb1":["Poulet de chair – démarrage",22,2900,1,60,{mais:58.7,soja:28,poisson:8,riz:3,coq:1.5,sel:.3,premix:.5}],
+"cb2":["Poulet de chair – finition",19,2900,.9,150,{mais:62.7,soja:22,poisson:5,riz:8,coq:1.5,sel:.3,premix:.5}],
+"pon":["Poule pondeuse",16.5,2700,3.8,115,{mais:59.2,soja:18,poisson:4,ble:8,coq:10,sel:.3,premix:.5}],
+"pou":["Poulette (futur ponte)",18,2800,1,50,{mais:59.7,soja:22,poisson:4,riz:12,coq:1.5,sel:.3,premix:.5}],
+"can":["Canard",18,2800,.9,150,{mais:58.7,soja:20,poisson:4,riz:15,coq:1.5,sel:.3,premix:.5}],
+"lap":["Lapin",16,2200,.8,150,{mais:31.2,ble:25,saka:15,soja:12,palmiste:15,coq:1,sel:.3,premix:.5}],
+"che":["Chèvre (complément)",14,2000,.6,400,{mais:25.5,ble:30,palmiste:25,saka:12,arachide:5,coq:1,sel:1,premix:.5}],
+"boe":["Bœuf (embouche, complément)",13,1900,.5,3000,{mais:22.5,ble:35,palmiste:30,saka:10,coq:1,sel:1,premix:.5}],
+"por":["Porc – croissance",16,2800,.7,2000,{mais:59.7,soja:20,poisson:3,ble:15,coq:1.5,sel:.3,premix:.5}]
+};
+var N=10,price={},pct={},$=function(i){return document.getElementById(i)};
+var sp=$("sp");for(var k in SP){sp.innerHTML+='<option value="'+k+'">'+SP[k][0]+'</option>'}
+[1,10,50,100,500].forEach(function(v){var b=document.createElement("button");b.textContent=v;b.onclick=function(){N=v;$("an").value="";calc()};b.dataset.v=v;$("nb").appendChild(b)});
+$("ings").innerHTML=ING.map(function(g){return '<div class="ing"><span>'+g[1]+'<br><small class="kg" id="k_'+g[0]+'" style="font-weight:400"></small></span><input type="number" min="0" step="0.1" inputmode="decimal" id="p_'+g[0]+'"><input type="number" min="0" inputmode="decimal" id="c_'+g[0]+'"></div>'}).join("");
+ING.forEach(function(g){$("p_"+g[0]).oninput=calc;$("c_"+g[0]).oninput=calc});
+function rec(){var f=SP[sp.value][5];ING.forEach(function(g){$("p_"+g[0]).value=f[g[0]]||""});calc()}
+sp.onchange=rec;$("rec").onclick=rec;$("dj").oninput=calc;
+$("an").oninput=function(){var v=parseInt(this.value);if(v>0){N=v}calc()};
+function fmt(x){return x>=100?Math.round(x).toLocaleString("fr-FR"):x.toFixed(1).replace(".",",")}
+function calc(){
+var s=SP[sp.value],days=Math.max(1,parseInt($("dj").value)||1);
+[].forEach.call($("nb").children,function(b){b.className=(+b.dataset.v===N&&!$("an").value)?"on":""});
+var sum=0;ING.forEach(function(g){sum+=parseFloat($("p_"+g[0]).value)||0});
+var total=N*s[4]*days/1000,cp=0,me=0,ca=0,cost=0,html="";
+ING.forEach(function(g){var p=parseFloat($("p_"+g[0]).value)||0,w=sum?p/sum:0;
+cp+=w*g[2];me+=w*g[3];ca+=w*g[4];var kg=total*w;
+$("k_"+g[0]).textContent=kg?fmt(kg)+" kg":"";
+cost+=kg*(parseFloat($("c_"+g[0]).value)||0);
+if(kg)html+='<div class="n"><span>'+g[1]+'</span><b>'+fmt(kg)+' kg</b></div>'});
+$("sum").innerHTML='<span>Total des pourcentages</span><b class="'+(Math.abs(sum-100)<.6?"ok":"bad")+'">'+fmt(sum)+' %</b>';
+$("tot").textContent=sum?fmt(total)+" kg d’aliment":"Choisissez des ingrédients";
+$("list").innerHTML=html;
+$("cost").textContent=cost?Math.round(cost).toLocaleString("fr-FR")+" FC":"Entrez les prix";
+function st(v,t,u,d){var r=t?v/t:0,c=r<.93?"bad":r>1.15?"bad":"ok",m=r<.93?"trop bas":r>1.15?"trop haut":"OK";
+return '<div class="n"><span>'+d+' (besoin '+t+u+')</span><span class="'+c+'">'+(sum?v.toFixed(d=="Énergie"?0:1).replace(".",","):"–")+u+' · '+(sum?m:"")+'</span></div>'}
+$("nut").innerHTML=st(cp,s[1],"%","Protéines")+st(me,s[2]," kcal/kg","Énergie")+st(ca,s[3],"%","Calcium")+'<p class="note">Ration de '+s[4]+' g/jour par animal.</p>'+(Math.abs(sum-100)>=.6&&sum?'<div class="w">Les pourcentages doivent faire 100 %. Les calculs sont ramenés à 100 %.</div>':"")
+}
+rec();
+</script></body></html>
